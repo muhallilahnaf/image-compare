@@ -19,6 +19,10 @@ let handle = null
 let value = null
 let current = null
 let update = {}
+let key1 = null
+let val1 = null
+let key2 = null
+let val2 = null
 
 
 // validate file
@@ -73,22 +77,27 @@ const toForwardSlash = (p) => {
 
 //load images
 const loadPics = (itemNo) => {
-    let i = 1
-    for (const [key, val] of Object.entries(value[itemNo])) {
-        if (i === 1) {
-            pic1.style.background = `url('file:///${ toForwardSlash(val) }')`
-            pic1.style.backgroundRepeat = 'no-repeat'
-            pic1.style.backgroundSize = 'contain'
-            pic1name.innerHTML = val
-        } else {
-            pic2.style.background = `url('file:///${ toForwardSlash(val) }')`
-            pic2.style.backgroundRepeat = 'no-repeat'
-            pic2.style.backgroundSize = 'contain'
-            pic2name.innerHTML = val
-        }
-        i++
-    }
     setActiveSidebar(itemNo)
+
+    key1 = null
+    val1 = null
+    key2 = null
+    val2 = null
+    
+    for (const [key, val] of Object.entries(value[itemNo])) {
+        key1 ? key2 = key : key1 = key
+        val1 ? val2 = val : val1 = val
+    }
+
+    pic1.style.background = `url('file:///${ toForwardSlash(val1) }')`
+    pic1.style.backgroundRepeat = 'no-repeat'
+    pic1.style.backgroundSize = 'contain'
+    pic1name.innerHTML = val1
+    pic2.style.background = `url('file:///${ toForwardSlash(val2) }')`
+    pic2.style.backgroundRepeat = 'no-repeat'
+    pic2.style.backgroundSize = 'contain'
+    pic2name.innerHTML = val2
+
 }
 
 
@@ -177,21 +186,21 @@ const gotoNext = () => {
 }
 
 
-// write `delete1` to current file
+// write `delete key 1` to current item
 const writeDelete1 = () => {
-    update[`index${current}`] = 'delete 1'
+    if (value) update[`index${current}`] = `delete ${key1}`
 }
 
 
-// write `delete2` to current file
+// write `delete key 2` to current item
 const writeDelete2 = () => {
-    update[`index${current}`] = 'delete 2'
+    if (value) update[`index${current}`] = `delete ${key2}`
 }
 
 
-// write `keep` to current file
+// write `keep` to current item
 const writeKeep = () => {
-    update[`index${current}`] = 'keep'
+    if (value) update[`index${current}`] = 'keep'
 }
 
 

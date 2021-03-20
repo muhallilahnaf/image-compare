@@ -84,6 +84,7 @@ h1 {
     font-weight: 300;
     background-color: azure;
     border-radius: 5px;
+    min-height: 2em;
 }
 
 #delete1, #delete2 {
@@ -99,7 +100,7 @@ h1 {
     margin: 10px;
 }
 
-#left, #keep, #right {
+#prev, #keep, #next {
     margin: 0 10px;
     padding: 5px;
 }
