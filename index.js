@@ -28,18 +28,18 @@ let val2 = null
 // validate file
 const validate = (f) => {
     if (!f.matches) return 'no matches key'
-    if ( !Array.isArray(f.matches) ) return 'matches must be array'
-    if ( f.matches.length === 0 ) return 'matches is empty'
+    if (!Array.isArray(f.matches)) return 'matches must be array'
+    if (f.matches.length === 0) return 'matches is empty'
 
     const matches = f.matches
     for (const item of matches) {
-        
-        if ( typeof item !== 'object' ) return 'matches item must be object'
+
+        if (typeof item !== 'object') return 'matches item must be object'
 
         const itemArr = Object.entries(item)
         if (itemArr.length !== 2) return 'matches item must have 2 keys'
 
-        for ( const [key, val] of itemArr) {
+        for (const [key, val] of itemArr) {
             if (typeof val !== 'string') return 'matches item must have file path strings'
         }
     }
@@ -48,10 +48,16 @@ const validate = (f) => {
 
 
 // generate html element
-const genElement = (d, i) => {
+const genElement = (item, i) => {
     const p = document.createElement('p')
     p.className = `item item-${i}`
-    p.innerHTML = d
+
+    for (const [key, val] of Object.entries(item)) {
+        const pInner = document.createElement('p')
+        pInner.innerHTML = `${key}: ${val}`
+        p.appendChild(pInner)
+    }
+
     return p
 }
 
@@ -59,7 +65,7 @@ const genElement = (d, i) => {
 // set active value background color in sidebar
 const setActiveSidebar = (itemNo) => {
     const els = document.querySelectorAll('.item')
-    
+
     els.forEach(el => {
         el.style.backgroundColor = 'lightgrey'
     })
@@ -79,25 +85,45 @@ const toForwardSlash = (p) => {
 const loadPics = (itemNo) => {
     setActiveSidebar(itemNo)
 
+    // color reset
+    keep.style.backgroundColor = '#24A0ED'
+    delete1.style.backgroundColor = '#24A0ED'
+    delete2.style.backgroundColor = '#24A0ED'
+
+    // value reset
     key1 = null
     val1 = null
     key2 = null
     val2 = null
-    
+
     for (const [key, val] of Object.entries(value[itemNo])) {
         key1 ? key2 = key : key1 = key
         val1 ? val2 = val : val1 = val
     }
 
-    pic1.style.background = `url('file:///${ toForwardSlash(val1) }')`
+    pic1.style.background = `url('file:///${toForwardSlash(val1)}')`
     pic1.style.backgroundRepeat = 'no-repeat'
     pic1.style.backgroundSize = 'contain'
     pic1name.innerHTML = val1
-    pic2.style.background = `url('file:///${ toForwardSlash(val2) }')`
+    pic2.style.background = `url('file:///${toForwardSlash(val2)}')`
     pic2.style.backgroundRepeat = 'no-repeat'
     pic2.style.backgroundSize = 'contain'
     pic2name.innerHTML = val2
 
+    // button color to show update value
+    if (update[`index${current}`]) {
+        const u = update[`index${current}`]
+
+        if (u.includes('keep')) {
+            keep.style.backgroundColor = '#4CAF50'
+        } else if (u === `delete ${key1}`) {
+            delete1.style.backgroundColor = '#4CAF50'
+        } else if (u === `delete ${key2}`) {
+            delete2.style.backgroundColor = '#4CAF50'
+        } else {
+            // show msg that its left to choose
+        }
+    }
 }
 
 
@@ -105,19 +131,15 @@ const loadPics = (itemNo) => {
 const load = (tmp) => {
     value = tmp.matches
 
-    value.forEach( (item, i) => {
-        let fnames = ''
-
-        for (const [key, val] of Object.entries(item)) {
-            fnames += `${key}: ${val}\n\n`
-        }
-
-        fnames = fnames.trim()
-
-        const element = genElement(fnames, i)
-
+    value.forEach((item, i) => {
+        const element = genElement(item, i)
         sidebar.appendChild(element)
     })
+
+    const itemAll = document.getElementsByClassName('item')
+    for (const item of itemAll) {
+        item.addEventListener('click', gotoItem)
+    }
 
     current = 0
     loadPics(current)
@@ -136,14 +158,9 @@ const openFile = async () => {
     const msg = validate(tmp)
 
     if (msg === 'valid') {
-
-        if (await verifyPermission(fileHandle, true)) {
-            fileName.innerHTML = file.name
-            handle = fileHandle
-            load(tmp)
-        } else {
-            alert('permission denied')
-        }
+        fileName.innerHTML = file.name
+        handle = fileHandle
+        load(tmp)
     } else {
         alert(msg)
     }
@@ -153,20 +170,29 @@ const openFile = async () => {
 // save file
 const saveFile = async () => {
 
-    if (handle) {
-        writeFile(handle, value)
+    const fileHandle = await getNewFileHandle()
+
+    if (await verifyPermission(fileHandle, true)) {
+        let copyValue = value
+        for (const [k, v] of Object.entries(update)) {
+            const index = /\d+/.exec(k)
+            copyValue[index]['update'] = v
+        }
+
+        const dict = { matches: copyValue }
+
+        writeFile(fileHandle, JSON.stringify(dict))
         alert('saved')
+
     } else {
-        alert('no file open')
+        alert('permission denied')
     }
 }
 
 
 // go to previous item
 const gotoPrev = () => {
-    console.log('prev')
     if (value) {
-        console.log('true')
         current -= 1
         if (current < 0) current = value.length - 1
         loadPics(current)
@@ -176,9 +202,7 @@ const gotoPrev = () => {
 
 // go to next item
 const gotoNext = () => {
-    console.log('next')
     if (value) {
-        console.log('true')
         current += 1
         if (current >= value.length) current = 0
         loadPics(current)
@@ -186,21 +210,42 @@ const gotoNext = () => {
 }
 
 
+// go to specific item (from sidebar)
+const gotoItem = (e) => {
+    const path = e.path
+    let index = ''
+    path.forEach(p => {
+        if (/item-\d+/.test(p.className)) index = /\d+/.exec(p.className)
+    })
+    current = index
+    loadPics(current)
+}
+
+
 // write `delete key 1` to current item
 const writeDelete1 = () => {
-    if (value) update[`index${current}`] = `delete ${key1}`
+    if (value) {
+        update[`index${current}`] = `delete ${key1}`
+        delete1.style.backgroundColor = '#4CAF50'
+    }
 }
 
 
 // write `delete key 2` to current item
 const writeDelete2 = () => {
-    if (value) update[`index${current}`] = `delete ${key2}`
+    if (value) {
+        update[`index${current}`] = `delete ${key2}`
+        delete2.style.backgroundColor = '#4CAF50'
+    }
 }
 
 
 // write `keep` to current item
 const writeKeep = () => {
-    if (value) update[`index${current}`] = 'keep'
+    if (value) {
+        update[`index${current}`] = 'keep'
+        keep.style.backgroundColor = '#4CAF50'
+    }
 }
 
 
@@ -212,3 +257,4 @@ nextButton.addEventListener('click', gotoNext)
 delete1.addEventListener('click', writeDelete1)
 delete2.addEventListener('click', writeDelete2)
 keep.addEventListener('click', writeKeep)
+

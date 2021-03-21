@@ -5,6 +5,10 @@
     font-family: 'Lato', sans-serif;
 }
 
+button {
+    cursor: pointer;
+}
+
 header {
     height: 100px;
     background-color: darkgray;
@@ -21,6 +25,7 @@ h1 {
 #open, #save {
     margin: 10px;
     padding: 5px;
+    background-color: #24A0ED;
 }
 
 #filename {
@@ -44,13 +49,29 @@ h1 {
     flex-shrink: 0;
     background-color: bisque;
     height: calc(100vh - 100px);
+    max-width: 300px;
+    overflow-y: scroll;
 }
 
 .item {
-    margin: 5px;
+    margin: 10px 5px;
     padding: 5px;
     background-color: grey;
     border-radius: 5px;
+    overflow-wrap: break-word;
+    cursor: pointer;
+}
+
+.item:hover {
+    opacity: 0.8;
+}
+
+.item p {
+    padding: 5px;
+}
+
+.item p:first-child {
+    background-color: #ededed;
 }
 
 #main {
@@ -85,6 +106,7 @@ h1 {
     background-color: azure;
     border-radius: 5px;
     min-height: 2em;
+    overflow-wrap: break-word;
 }
 
 #delete1, #delete2 {
@@ -92,6 +114,7 @@ h1 {
     width: 50px;
     margin: auto;
     display: block;
+    background-color: #24A0ED;
 }
 
 #controldiv {
@@ -103,4 +126,5 @@ h1 {
 #prev, #keep, #next {
     margin: 0 10px;
     padding: 5px;
+    background-color: #24A0ED;
 }

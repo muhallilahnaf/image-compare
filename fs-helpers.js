@@ -19,7 +19,7 @@ const getNewFileHandle = () => {
     if ('showSaveFilePicker' in window) {
         const opts = {
             types: [{
-                description: 'Text file',
+                description: 'JSON file',
                 accept: { 'application/json': ['.json'] },
             }],
         };
